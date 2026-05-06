@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>蓝牙图像处理工具 - 相册模式</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #3498db;
+            --primary-hover: #2980b9;
+            --success: #2ecc71;
+            --success-hover: #27ae60;
+            --danger: #e74c3c;
+            --danger-hover: #c0392b;
+            --warning: #e67e22;
+            --warning-hover: #d35400;
+            --purple: #9b59b6;
+            --purple-hover: #8e44ad;
+            --dark: #2c3e50;
+            --light-bg: #f8fafc;
+            --border: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --radius: 10px;
+            --transition: all 0.3s ease;
+        }
+
+        html {
+            touch-action: manipulation;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 10px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 20px;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 15px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        /* 顶部三列布局 - 左中右排列 */
+        .top-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .preview-and-controls,
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .upload-panel,
+        .bluetooth-panel,
+        .preview-panel,
+        .controls-panel,
+        .panel {
+            width: 100%;
+            background-color: #fff;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            transition: var(--transition);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 120px;
+            background-color: var(--light-bg);
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .upload-area:hover,
+        .upload-area.drag-over {
+            border-color: var(--primary);
+            background-color: #f0f9ff;
+        }
+
+        .upload-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .upload-icon {
+            width: 50px;
+            height: 50px;
+            background-color: #e3f2fd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-icon svg {
+            width: 36px;
+            height: 36px;
+            color: var(--primary);
+        }
+
+        .upload-text-content {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .upload-area .main-text {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .upload-area p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 16px;
+            background-color: #fff;
+            transition: var(--transition);
+            min-height: 44px;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: var(--transition);
+            width: 100%;
+            margin-bottom: 10px;
+            min-height: 48px;
+            -webkit-appearance: none;
+            touch-action: manipulation;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #scan-bluetooth {
+            background-color: var(--success);
+        }
+
+        #scan-bluetooth:hover {
+            background-color: var(--success-hover);
+        }
+
+        #disconnect-bluetooth {
+            background-color: var(--danger);
+            display: none;
+        }
+
+        #disconnect-bluetooth:hover {
+            background-color: var(--danger-hover);
+        }
+
+        .rotate-button-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .rotate-button-group button {
+            flex: 1;
+            margin-bottom: 0;
+            background-color: var(--purple);
+        }
+
+        .rotate-button-group button:hover {
+            background-color: var(--purple-hover);
+        }
+
+        #reset-transform {
+            background-color: var(--warning);
+        }
+
+        #reset-transform:hover {
+            background-color: var(--warning-hover);
+        }
+
+        .bluetooth-button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .bluetooth-button-group button {
+            margin-bottom: 0;
+        }
+
+        .slider-container {
+            margin-bottom: 15px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+
+        .slider-value {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: var(--border);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        #image-canvas {
+            max-width: 100%;
+            height: auto;
+            background-color: var(--light-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: grab;
+            touch-action: pan-x pan-y;
+        }
+
+        #image-canvas.grabbing {
+            cursor: grabbing;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            width: 100%;
+            text-align: center;
+        }
+
+        #canvas-size-indicator {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .status-info {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: flex-start;
+            font-size: 14px;
+            padding: 4px 0;
+        }
+
+        .status-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 90px;
+        }
+
+        .status-value {
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .info-card {
+            background-color: #f1f5f9;
+            border-left: 4px solid var(--primary);
+            padding: 14px;
+            margin-bottom: 16px;
+            border-radius: 0 6px 6px 0;
+            font-size: 14px;
+        }
+
+        .sub-section {
+            margin-bottom: 20px;
+        }
+
+        .sub-section h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .collapsible-panel {
+            background: linear-gradient(135deg, #fefcf5 0%, #fdf5f1 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .command-area {
+            background-color: var(--light-bg);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid var(--border);
+        }
+
+        .command-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: #0f3b5c;
+        }
+
+        .command-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .command-input-group input {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            min-height: 44px;
+        }
+
+        .command-input-group button {
+            background-color: var(--warning);
+            margin-bottom: 0;
+        }
+
+        .command-input-group button:hover {
+            background-color: var(--warning-hover);
+        }
+
+        .command-output {
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 12px;
+            border-radius: 8px;
+            max-height: 160px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            border: 1px solid #334155;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .command-output .log-send {
+            color: #facc15;
+        }
+
+        .command-output .log-recv {
+            color: #4ade80;
+        }
+
+        .command-output .log-error {
+            color: #f87171;
+        }
+
+        .command-clear-btn {
+            background: none;
+            border: 1px solid #94a3b8;
+            color: var(--text-primary);
+            padding: 8px 12px;
+            font-size: 13px;
+            width: auto;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        .command-clear-btn:hover {
+            background-color: var(--border);
+        }
+
+        .command-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .export-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 12px 0;
+        }
+
+        .export-group button {
+            background-color: var(--dark);
+            margin-bottom: 0;
+        }
+
+        .export-group button#export-c-array {
+            background-color: #f39c12;
+        }
+
+        .export-group button#export-binary {
+            background-color: #1abc9c;
+        }
+
+        .param-button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .param-button-group button {
+            flex: 1;
+            background-color: #6c757d;
+            margin-bottom: 0;
+        }
+
+        .album-mode-area {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 15px 0;
+            border: 1px solid #bae6fd;
+        }
+
+        .album-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 14px;
+            color: #026670;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .album-title::before {
+            content: "📷";
+        }
+
+        .album-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .album-input-group label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .album-input-group input {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 0;
+            min-height: 40px;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 14px 0;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            min-height: 36px;
+        }
+
+        .radio-group input[type="radio"] {
+            width: auto;
+            margin: 0;
+            cursor: pointer;
+            transform: scale(1.2);
+        }
+
+        #album-play-btn {
+            background-color: #2c7a4d;
+            margin-top: 8px;
+        }
+
+        #album-play-btn:hover {
+            background-color: #1e5a3a;
+        }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 30px the;
+        }
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #error-message {
+            position: fixed;
+            left: 50%;
+            bottom: 80px;
+            transform: translateX(-50%);
+            z-index: 9999;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 196, 140, 0.4);
+            display: none;
+            max-width: 90%;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            white-space: pre-wrap;
+        }
+
+        #error-message.success {
+            background: #00c48c !important;
+            color: white !important;
+        }
+
+        #transfer-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .transfer-dialog-content {
+            background: #fff;
+            width: 92%;
+            max-width: 400px;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .transfer-title {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .transfer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 15px;
+        }
+
+        .transfer-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .transfer-info-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .transfer-info-value {
+            font-weight: 600;
+        }
+
+        .progress-container {
+            height: 10px;
+            background-color: var(--border);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .transfer-cancel-btn {
+            background: var(--danger);
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .transfer-cancel-btn:hover {
+            background: var(--danger-hover);
+        }
+        
+        /* 移动端自适应 - 小屏幕自动变回竖排 */
+        @media (max-width: 768px) {
+            .top-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="transfer-dialog">
+        <div class="transfer-dialog-content">
+            <div class="transfer-title">📤 蓝牙数据传输中</div>
+            <div class="transfer-info">
+                <div class="transfer-info-row">
+                    <span class="transfer-info-label">传输进度：</span>
+                    <span class="transfer-info-value" id="dialog-progress">0%</span>
+                </div>
+                <div class="transfer-info-row">
+                    <span class="transfer-info-label">已发送 / 总大小：</span>
+                    <span class="transfer-info-value" id="dialog-bytes">0 / 0 字节</span>
+                </div>
+                <div class="transfer-info-row">
+                    <span class="transfer-info-label">传输速度：</span>
+                    <span class="transfer-info-value" id="dialog-speed">0 KB/s</span>
+                </div>
+                <div class="transfer-info-row">
+                    <span class="transfer-info-label">已用时间：</span>
+                    <span class="transfer-info-value" id="dialog-elapsed">00:00</span>
+                </div>
+                <div class="transfer-info-row">
+                    <span class="transfer-info-label">预计剩余：</span>
+                    <span class="transfer-info-value" id="dialog-remaining">--:--</span>
+                </div>
+            </div>
+            <div class="progress-container">
+                <div id="dialog-progress-bar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            <div class="transfer-cancel-btn" id="cancel-transfer-btn">取消传输</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>ESP32-蓝牙墨水屏传图工具</h1>
+            <p>双控面板 · 实时预览 · 命令交互 · 相册模式</p>
+        </div>
+
+        <div class="top-panel">
+            <!-- 左侧：图片上传 -->
+            <div class="upload-panel">
+                <h2 class="section-title">图片上传</h2>
+                <div id="upload-area">
+                    <div class="upload-content">
+                        <div class="upload-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                        </div>
+                        <div class="upload-text-content">
+                            <p class="main-text">点击上传或拖放图片</p>
+                            <p>支持 JPG, PNG, GIF 格式</p>
+                        </div>
+                    </div>
+                </div>
+                <input type="file" id="image-upload" accept="image/*" style="display: none;">
+
+                <div class="rotate-button-group">
+                    <button id="rotate-left">↺ 向左旋转</button>
+                    <button id="rotate-right">↻ 向右旋转</button>
+                </div>
+                <button id="reset-transform">⟲ 重置位置与旋转</button>
+            </div>
+
+            <!-- 中间：蓝牙设备绑定 -->
+            <div class="bluetooth-panel">
+                <h2 class="section-title">蓝牙设备绑定</h2>
+                <div class="bluetooth-button-group">
+                    <button id="scan-bluetooth">搜索蓝牙设备</button>
+                    <button id="send-bluetooth">蓝牙发送</button>
+                </div>
+                <button id="disconnect-bluetooth">断开连接</button>
+            </div>
+
+            <!-- 右侧：显示屏驱动 -->
+            <div class="bluetooth-panel">
+                <h2 class="section-title">显示屏驱动</h2>
+                <select id="driver-select">
+                    <option value="">请选择驱动</option>
+                    <option value="EL044TS2">EL044TS2</option>
+                    <option value="EL073TF1">EL073TF1</option>
+                    <option value="EL081TS2">EL081TS2</option>
+                    <option value="HE583A04A1">HE583A04A1</option>
+                    <option value="HSE097SE">HSE097SE</option>
+                    <option value="SE0398NZ07A0">SE0398NZ07A0</option>
+                    <option value="SE0398NZ07A1">SE0398NZ07A1</option>
+                    <option value="WFT0371CZ78">WFT0371CZ78</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="preview-and-controls">
+            <div class="preview-panel">
+                <h2 class="section-title">图像预览（可拖动+滚轮缩放）</h2>
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <div class="canvas-wrapper">
+                        <canvas id="image-canvas"></canvas>
+                        <div id="canvas-size-indicator">800×480</div>
+                    </div>
+                </div>
+
+                <!-- 图片参数滑块直接放在预览下方 -->
+                <h2 class="section-title">图像参数调整</h2>
+                <div class="slider-container">
+                    <div class="slider-label"><span>饱和度</span><span id="saturation-value">1.0</span></div>
+                    <input type="range" id="saturation-slider" min="0" max="2" step="0.1" value="1.0">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label"><span>亮度</span><span id="brightness-value">1.0</span></div>
+                    <input type="range" id="brightness-slider" min="0" max="2" step="0.1" value="1.0">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label"><span>对比度</span><span id="contrast-value">1.0</span></div>
+                    <input type="range" id="contrast-slider" min="0" max="2" step="0.1" value="1.0">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label"><span>扩散程度</span><span id="diffusion-value">1.0</span></div>
+                    <input type="range" id="diffusion-slider" min="0" max="1" step="0.1" value="1.0">
+                </div>
+
+                <div class="info-card" style="margin-top:16px;">
+                    <strong>提示:</strong> 调整参数时图像会实时更新
+                </div>
+
+                <div class="param-button-group">
+                    <button id="toggle-debug">🔧 调试模式</button>
+                </div>
+
+                <div id="debug-panel" class="collapsible-panel" style="display: none;">
+                    <div class="sub-section">
+                        <h4>💾 导出图像数据</h4>
+                        <div class="export-group">
+                            <button id="export-c-array">导出C数组</button>
+                            <button id="export-binary">导出二进制文件</button>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h4>⚙️ 设备命令示例</h4>
+                        <div class="command-area">
+                            <div class="command-input-group">
+                                <input type="text" id="command-input" placeholder="输入命令 (文本) 例如: INFO, RESET, DRAW">
+                                <button id="send-command-btn" disabled>发送命令</button>
+                            </div>
+                            <div class="command-buttons-grid">
+                                <button class="cmd-btn" data-cmd="FORMAT">FORMAT</button>
+                                <button class="cmd-btn" data-cmd="LIST">LIST</button>
+                                <button class="cmd-btn" data-cmd="LIST ALL">LIST ALL</button>
+                                <button class="cmd-btn" data-cmd="STATUS">STATUS</button>
+                                <button class="cmd-btn" data-cmd="HELP">HELP</button>
+                                <button class="cmd-btn" data-cmd="AUTO 5 0">AUTO 顺序</button>
+                                <button class="cmd-btn" data-cmd="AUTO 5 1">AUTO 倒序</button>
+                                <button class="cmd-btn" data-cmd="AUTO 5 2">AUTO 随机</button>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                <span style="font-size:12px;">执行结果 & 通知</span>
+                                <button id="clear-command-log" class="command-clear-btn">清空日志</button>
+                            </div>
+                            <div id="command-output-log" class="command-output">
+                                [系统] 等待蓝牙连接以启用命令交互...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="album-mode-area">
+                    <div class="album-title">相册模式自动播放</div>
+                    <div class="album-input-group">
+                        <label>播放间隔 (秒):</label>
+                        <input type="number" id="album-interval" value="3600" min="1">
+                    </div>
+                    <div class="radio-group">
+                        <label><input type="radio" name="play-mode" value="sequential" checked> 顺序</label>
+                        <label><input type="radio" name="play-mode" value="reverse"> 倒序</label>
+                        <label><input type="radio" name="play-mode" value="random"> 随机</label>
+                    </div>
+                    <button id="album-play-btn">▶ 自动播放</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="panel">
+            <h2 class="section-title">系统状态</h2>
+            <div class="status-info">
+                <div class="status-item"><span class="status-label">当前画布尺寸：</span><span id="current-canvas-size" class="status-value">800×480</span></div>
+                <div class="status-item"><span class="status-label">当前模式：</span><span id="current-mode" class="status-value">黑白模式</span></div>
+                <div class="status-item"><span class="status-label">抖动算法：</span><span id="current-algorithm" class="status-value">Floyd-Steinberg</span></div>
+                <div class="status-item"><span class="status-label">图像状态：</span><span id="image-status" class="status-value">未上传</span></div>
+                <div class="status-item"><span class="status-label">蓝牙状态：</span><span id="bluetooth-status" class="status-value">未连接</span></div>
+                <div class="status-item"><span class="status-label">设备型号：</span><span id="device-model" class="status-value">未连接</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading">
+        <div class="loading-content">
+            <div class="loader"></div>
+            <p id="loading-text">处理中，请稍候...</p>
+        </div>
+    </div>
+    <div id="error-message"></div>
+
+    <script>
+        const DOM = {
+            scanBluetooth: document.getElementById("scan-bluetooth"),
+            sendBluetooth: document.getElementById("send-bluetooth"),
+            disconnectBluetooth: document.getElementById("disconnect-bluetooth"),
+            uploadArea: document.getElementById("upload-area"),
+            imageUpload: document.getElementById("image-upload"),
+            canvasWidth: document.getElementById("canvasWidth"),
+            canvasHeight: document.getElementById("canvasHeight"),
+            updateCanvas: document.getElementById("update-canvas"),
+            quickResolutions: document.getElementById("quickResolutions"),
+            ditherMode: document.getElementById("ditherMode"),
+            ditherAlgorithm: document.getElementById("ditherAlgorithm"),
+            exportCArray: document.getElementById("export-c-array"),
+            exportBinary: document.getElementById("export-binary"),
+            toggleDebug: document.getElementById("toggle-debug"),
+            canvas: document.getElementById("image-canvas"),
+            ctx: document.getElementById("image-canvas").getContext("2d"),
+            loading: document.getElementById("loading"),
+            loadingText: document.getElementById("loading-text"),
+            errorMessage: document.getElementById("error-message"),
+            canvasSizeIndicator: document.getElementById("canvas-size-indicator"),
+            currentCanvasSize: document.getElementById("current-canvas-size"),
+            currentMode: document.getElementById("current-mode"),
+            currentAlgorithm: document.getElementById("current-algorithm"),
+            imageStatus: document.getElementById("image-status"),
+            bluetoothStatus: document.getElementById("bluetooth-status"),
+            deviceModel: document.getElementById("device-model"),
+            modeDescription: document.getElementById("mode-description-text"),
+            algorithmDescription: document.getElementById("algorithm-description-text"),
+            rotateLeft: document.getElementById("rotate-left"),
+            rotateRight: document.getElementById("rotate-right"),
+            resetTransform: document.getElementById("reset-transform"),
+            saturationSlider: document.getElementById("saturation-slider"),
+            brightnessSlider: document.getElementById("brightness-slider"),
+            contrastSlider: document.getElementById("contrast-slider"),
+            diffusionSlider: document.getElementById("diffusion-slider"),
+            saturationValue: document.getElementById("saturation-value"),
+            brightnessValue: document.getElementById("brightness-value"),
+            contrastValue: document.getElementById("contrast-value"),
+            diffusionValue: document.getElementById("diffusion-value"),
+            driverSelect: document.getElementById("driver-select"),
+            commandInput: document.getElementById("command-input"),
+            sendCommand: document.getElementById("send-command-btn"),
+            commandLog: document.getElementById("command-output-log"),
+            clearCommandLog: document.getElementById("clear-command-log"),
+            albumInterval: document.getElementById("album-interval"),
+            albumPlay: document.getElementById("album-play-btn"),
+            debugPanel: document.getElementById("debug-panel"),
+            transferDialog: document.getElementById("transfer-dialog"),
+            dialogProgressBar: document.getElementById("dialog-progress-bar"),
+            dialogProgress: document.getElementById("dialog-progress"),
+            dialogBytes: document.getElementById("dialog-bytes"),
+            dialogSpeed: document.getElementById("dialog-speed"),
+            dialogElapsed: document.getElementById("dialog-elapsed"),
+            dialogRemaining: document.getElementById("dialog-remaining"),
+            cancelTransfer: document.getElementById("cancel-transfer-btn")
+        };
+
+        const driverConfig = {
+            "EL044TS2": { width: 512, height: 368, colorMode: "fourColor" },
+            "EL073TF1": { width: 800, height: 480, colorMode: "sixColor" },
+            "EL081TS2": { width: 1024, height: 576, colorMode: "fourColor" },
+            "HE583A04A1": { width: 648, height: 480, colorMode: "threeColor" },
+            "HSE097SE": { width: 960, height: 672, colorMode: "fourColor" },
+            "SE0398NZ07A0": { width: 768, height: 552, colorMode: "fourColor" },
+            "SE0398NZ07A1": { width: 768, height: 552, colorMode: "fourColor" },
+            "WFT0371CZ78": { width: 240, height: 416, colorMode: "threeColor" }
+        };
+
+        const BLE = {
+            SERVICE_UUID: "0000ffe0-0000-1000-8000-00805f9b34fb",
+            DATA_CHAR: "0000ffe1-0000-1000-8000-00805f9b34fb",
+            CMD_CHAR: "0000ffe2-0000-1000-8000-00805f9b34fb",
+            MODEL_CHAR: "0000ffe4-0000-1000-8000-00805f9b34fb",
+            WIDTH_CHAR: "0000ffe5-0000-1000-8000-00805f9b34fb",
+            HEIGHT_CHAR: "0000ffe6-0000-1000-8000-00805f9b34fb",
+            COLOR_CHAR: "0000ffe7-0000-1000-8000-00805f9b34fb"
+        };
+
+        const colorModeMap = { 2: "blackWhiteColor", 3: "threeColor", 4: "fourColor", 6: "sixColor" };
+        const modeDescriptions = {
+            blackWhiteColor: "黑白模式：将图像转换为黑白两色，适合单色墨水屏显示",
+            threeColor: "黑白红三色模式：支持黑色、白色和红色，适合三色墨水屏",
+            fourColor: "黑白红黄四色模式：支持黑色、白色、红色和黄色，适合四色墨水屏",
+            sixColor: "六色模式：支持黑白黄红蓝绿，适合E6全彩墨水屏"
+        };
+        const algorithmDescriptions = {
+            "floyd-steinberg": "Floyd-Steinberg: 经典误差扩散算法，效果平滑",
+            "atkinson": "Atkinson: 扩散较少，保留更多细节",
+            "stucki": "Stucki: 改进的误差扩散算法，更平滑",
+            "jarvis-judice-ninke": "Jarvis-Judice-Ninke: 效果更细腻",
+            "bayer": "Bayer: 有序抖动，计算快"
+        };
+        const modeNames = {
+            blackWhiteColor: "黑白模式",
+            threeColor: "黑白红三色",
+            fourColor: "黑白红黄四色",
+            sixColor: "六色模式"
+        };
+        const algorithmNames = {
+            "floyd-steinberg": "Floyd-Steinberg",
+            "atkinson": "Atkinson",
+            "stucki": "Stucki",
+            "jarvis-judice-ninke": "Jarvis-Judice-Ninke",
+            "bayer": "Bayer"
+        };
+
+        let state = {
+            originalImage: null,
+            originalImageData: null,
+            processedImageData: null,
+            device: null,
+            dataChar: null,
+            cmdChar: null,
+            isTransferring: false,
+            transferStart: 0,
+            deviceName: "",
+            model: "",
+            isDragging: false,
+            lastX: 0, lastY: 0,
+            scale: 1,
+            offsetX: 0, offsetY: 0,
+            rotation: 0,
+            minScale: 0.1, maxScale: 5
+        };
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function showLoading(text) { DOM.loadingText.textContent = text; DOM.loading.style.display = 'flex'; }
+        function hideLoading() { DOM.loading.style.display = 'none'; }
+
+        function showMessage(msg, isSuccess = false) {
+            DOM.errorMessage.textContent = msg;
+            DOM.errorMessage.style.display = 'block';
+            DOM.errorMessage.className = isSuccess ? 'success' : '';
+            setTimeout(() => DOM.errorMessage.style.display = 'none', 3000);
+        }
+
+        function appendLog(msg, type = 'send') {
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = `log-${type}`;
+            div.textContent = `[${time}] ${msg}`;
+            DOM.commandLog.appendChild(div);
+            DOM.commandLog.scrollTop = DOM.commandLog.scrollHeight;
+        }
+
+        function updateUI() {
+            DOM.currentCanvasSize.textContent = `${DOM.canvas.width}×${DOM.canvas.height}`;
+            DOM.canvasSizeIndicator.textContent = `${DOM.canvas.width}×${DOM.canvas.height}`;
+            DOM.currentMode.textContent = modeNames[DOM.ditherMode.value];
+            DOM.currentAlgorithm.textContent = algorithmNames[DOM.ditherAlgorithm.value];
+            DOM.imageStatus.textContent = state.originalImage ? "已上传" : "未上传";
+
+            if (state.device?.gatt.connected) {
+                DOM.bluetoothStatus.textContent = `已连接: ${state.deviceName || state.device.name}`;
+                DOM.deviceModel.textContent = state.model || "未知型号";
+                DOM.scanBluetooth.style.display = 'none';
+                DOM.disconnectBluetooth.style.display = 'block';
+                DOM.sendCommand.disabled = false;
+            } else {
+                DOM.bluetoothStatus.textContent = "未连接";
+                DOM.deviceModel.textContent = "未连接";
+                DOM.scanBluetooth.style.display = 'block';
+                DOM.disconnectBluetooth.style.display = 'none';
+                DOM.sendCommand.disabled = true;
+            }
+        }
+
+        function resetTransform() {
+            state.scale = 1;
+            state.offsetX = 0;
+            state.offsetY = 0;
+            state.rotation = 0;
+            redraw();
+        }
+
+        function rotate(deg) {
+            if (!state.originalImage) return showMessage("请先上传图片");
+            state.rotation += deg;
+            redraw();
+        }
+
+        function redraw() {
+            if (!state.originalImage) return;
+            const ctx = DOM.ctx;
+            ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
+            ctx.save();
+            ctx.translate(DOM.canvas.width / 2, DOM.canvas.height / 2);
+            ctx.rotate(state.rotation * Math.PI / 180);
+
+            const w = state.originalImage.width * state.scale;
+            const h = state.originalImage.height * state.scale;
+            ctx.drawImage(state.originalImage, -w / 2 + state.offsetX, -h / 2 + state.offsetY, w, h);
+            ctx.restore();
+
+            state.originalImageData = ctx.getImageData(0, 0, DOM.canvas.width, DOM.canvas.height);
+            processImage();
+        }
+
+        function initCanvas() {
+            DOM.canvas.width = 800;
+            DOM.canvas.height = 480;
+            const ctx = DOM.ctx;
+            ctx.fillStyle = "#f8fafc";
+            ctx.fillRect(0, 0, DOM.canvas.width, DOM.canvas.height);
+            ctx.fillStyle = "#94a3b8";
+            ctx.font = "16px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("上传图片后预览将显示在这里", DOM.canvas.width / 2, DOM.canvas.height / 2);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initCanvas();
+            updateSliders();
+            updateUI();
+            DOM.debugPanel.style.display = "none";
+        });
+
+        function updateSliders() {
+            DOM.saturationValue.textContent = DOM.saturationSlider.value;
+            DOM.brightnessValue.textContent = DOM.brightnessSlider.value;
+            DOM.contrastValue.textContent = DOM.contrastSlider.value;
+            DOM.diffusionValue.textContent = DOM.diffusionSlider.value;
+        }
+
+        DOM.saturationSlider.addEventListener('input', () => { updateSliders(); processImage(); });
+        DOM.brightnessSlider.addEventListener('input', () => { updateSliders(); processImage(); });
+        DOM.contrastSlider.addEventListener('input', () => { updateSliders(); processImage(); });
+        DOM.diffusionSlider.addEventListener('input', () => { updateSliders(); processImage(); });
+
+        DOM.rotateLeft.addEventListener('click', () => rotate(-90));
+        DOM.rotateRight.addEventListener('click', () => rotate(90));
+        DOM.resetTransform.addEventListener('click', resetTransform);
+
+        DOM.uploadArea.addEventListener('click', () => DOM.imageUpload.click());
+        DOM.imageUpload.addEventListener('change', e => {
+            if (e.target.files[0]) loadImage(e.target.files[0]);
+        });
+
+        function loadImage(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                state.originalImage = new Image();
+                state.originalImage.onload = () => {
+                    resetTransform();
+                    updateCanvasSize();
+                };
+                state.originalImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateCanvasSize() {
+            const w = parseInt(DOM.canvasWidth.value) || 800;
+            const h = parseInt(DOM.canvasHeight.value) || 480;
+            DOM.canvas.width = w;
+            DOM.canvas.height = h;
+            redraw();
+            updateUI();
+        }
+
+        DOM.driverSelect.addEventListener('change', e => {
+            const cfg = driverConfig[e.target.value];
+            if (cfg) {
+                DOM.canvasWidth.value = cfg.width;
+                DOM.canvasHeight.value = cfg.height;
+                DOM.ditherMode.value = cfg.colorMode;
+                updateCanvasSize();
+            }
+        });
+
+        DOM.toggleDebug.addEventListener('click', () => {
+            const visible = DOM.debugPanel.style.display !== 'none';
+            DOM.debugPanel.style.display = visible ? 'none' : 'block';
+            DOM.toggleDebug.textContent = visible ? '🔧 调试模式' : '🔧 调试模式 (隐藏)';
+        });
+
+        function processImage() {
+            if (!state.originalImageData) return;
+            const img = new ImageData(
+                new Uint8ClampedArray(state.originalImageData.data),
+                state.originalImageData.width,
+                state.originalImageData.height
+            );
+            dither(img);
+            state.processedImageData = img;
+            DOM.ctx.putImageData(img, 0, 0);
+        }
+
+        function dither(imgData) {
+            const data = imgData.data;
+            const w = imgData.width;
+            const h = imgData.height;
+            const sat = parseFloat(DOM.saturationSlider.value);
+            const bri = parseFloat(DOM.brightnessSlider.value);
+            const con = parseFloat(DOM.contrastSlider.value);
+            const diff = parseFloat(DOM.diffusionSlider.value);
+            const algo = DOM.ditherAlgorithm.value;
+            const mode = DOM.ditherMode.value;
+
+            let palette;
+            if (mode === "sixColor") palette = [
+                [0, 0, 0], [255, 255, 255], [255, 0, 0],
+                [255, 255, 0], [0, 255, 0], [0, 0, 255]
+            ];
+            else if (mode === "fourColor") palette = [[0, 0, 0], [255, 255, 255], [255, 255, 0], [255, 0, 0]];
+            else if (mode === "threeColor") palette = [[0, 0, 0], [255, 255, 255], [255, 0, 0]];
+            else palette = [[0, 0, 0], [255, 255, 255]];
+
+            const adjust = (r, g, b) => {
+                r *= bri; g *= bri; b *= bri;
+                r = (r - 128) * con + 128;
+                g = (g - 128) * con + 128;
+                b = (b - 128) * con + 128;
+                const avg = (r + g + b) / 3;
+                r = avg + (r - avg) * sat;
+                g = avg + (g - avg) * sat;
+                b = avg + (b - avg) * sat;
+                return [Math.min(255, Math.max(0, r)), Math.min(255, Math.max(0, g)), Math.min(255, Math.max(0, b))];
+            };
+
+            const closest = (r, g, b) => {
+                let best = palette[0], min = Infinity;
+                for (const c of palette) {
+                    const d = (c[0] - r) ** 2 + (c[1] - g) ** 2 + (c[2] - b) ** 2;
+                    if (d < min) { min = d; best = c; }
+                }
+                return best;
+            };
+
+            let kernel;
+            if (algo === "floyd-steinberg") kernel = [[1, 0, 7/16], [-1,1,3/16], [0,1,5/16], [1,1,1/16]];
+            else if (algo === "atkinson") kernel = [[1,0,1/8],[2,0,1/8],[-1,1,1/8],[0,1,1/8],[1,1,1/8],[0,2,1/8]];
+            else if (algo === "stucki") kernel = [[1,0,8/42],[2,0,4/42],[-2,1,2/42],[-1,1,4/42],[0,1,8/42],[1,1,4/42],[2,1,2/42],[-2,2,1/42],[-1,2,2/42],[0,2,4/42],[1,2,2/42],[2,2,1/42]];
+            else if (algo === "jarvis-judice-ninke") kernel = [[1,0,7/48],[2,0,5/48],[-2,1,3/48],[-1,1,5/48],[0,1,7/48],[1,1,5/48],[2,1,3/48],[-2,2,1/48],[-1,2,3/48],[0,2,5/48],[1,2,3/48],[2,2,1/48]];
+            else {
+                const bayer = [[0,32,8,40,2,34,10,42],[48,16,56,24,50,18,58,26],[12,44,4,36,14,46,6,38],[60,28,52,20,62,30,54,22],[3,35,11,43,1,33,9,41],[51,19,59,27,49,17,57,25],[15,47,7,39,13,45,5,37],[63,31,55,23,61,29,53,21]];
+                for (let y=0;y<h;y++)for(let x=0;x<w;x++){
+                    const i=(y*w+x)*4;
+                    const [r,g,b]=adjust(data[i],data[i+1],data[i+2]);
+                    const th=bayer[y%8][x%8]/64*255;
+                    const gray=0.299*r+0.587*g+0.114*b;
+                    const c=gray>=th?palette[1]:palette[0];
+                    data[i]=c[0];data[i+1]=c[1];data[i+2]=c[2];
+                }
+                return;
+            }
+
+            for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+                const i=(y*w+x)*4;
+                const [r,g,b]=adjust(data[i],data[i+1],data[i+2]);
+                const c=closest(r,g,b);
+                const er=r-c[0],eg=g-c[1],eb=b-c[2];
+                data[i]=c[0];data[i+1]=c[1];data[i+2]=c[2];
+                for(const [dx,dy,f] of kernel){
+                    const nx=x+dx,ny=y+dy;
+                    if(nx>=0&&nx<w&&ny>=0&&ny<h){
+                        const ni=(ny*w+nx)*4;
+                        data[ni]=Math.min(255,Math.max(0,data[ni]+er*f*diff));
+                        data[ni+1]=Math.min(255,Math.max(0,data[ni+1]+eg*f*diff));
+                        data[ni+2]=Math.min(255,Math.max(0,data[ni+2]+eb*f*diff));
+                    }
+                }
+            }
+        }
+
+        DOM.exportCArray.addEventListener('click', () => {
+            if (!state.processedImageData) return showMessage("请先处理图片");
+            const bin = encode(state.processedImageData);
+            let out = `// ${DOM.canvas.width}x${DOM.canvas.height}\nconst uint8_t img[] = {\n`;
+            for (let i=0;i<bin.length;i+=16) {
+                const line = bin.slice(i,i+16).map(b=>`0x${b.toString(16).padStart(2,'0')}`).join(',');
+                out += `  ${line},\n`;
+            }
+            out += '};\n';
+            const blob = new Blob([out],{type:'text/plain'});
+            const a = document.createElement('a');
+            a.href=URL.createObjectURL(blob);
+            a.download='image_data.c';
+            a.click();
+        });
+
+        DOM.exportBinary.addEventListener('click', () => {
+            if (!state.processedImageData) return showMessage("请先处理图片");
+            const bin = encode(state.processedImageData);
+            const blob = new Blob([bin],{type:'application/octet-stream'});
+            const a = document.createElement('a');
+            a.href=URL.createObjectURL(blob);
+            a.download=`img_${DOM.canvas.width}x${DOM.canvas.height}.bin`;
+            a.click();
+            showMessage("导出成功", true);
+        });
+
+        function encode(imgData) {
+            const w=imgData.width,h=imgData.height,d=imgData.data,mode=DOM.ditherMode.value;
+            if(mode==="sixColor"){
+                const out=new Uint8Array(Math.ceil(w*h/2));
+                const pal=[[0,0,0],[255,255,255],[255,0,0],[255,255,0],[0,255,0],[0,0,255]];
+                const idx=(r,g,b)=>pal.findIndex(c=>c[0]==r&&c[1]==g&&c[2]==b);
+                for(let y=0;y<h;y++)for(let x=0;x<w;x+=2){
+                    const i1=(y*w+x)*4,i2=(y*w+x+1)*4;
+                    const c1=idx(d[i1],d[i1+1],d[i1+2]);
+                    const c2=x+1<w?idx(d[i2],d[i2+1],d[i2+2]):1;
+                    out[Math.floor((y*w+x)/2)]=(c1<<4)|c2;
+                }
+                return out;
+            }
+            if(mode==="fourColor"){
+                const out=new Uint8Array(Math.ceil(w*h/4));
+                const pal=[[0,0,0],[255,255,255],[255,255,0],[255,0,0]];
+                const idx=(r,g,b)=>pal.findIndex(c=>c[0]==r&&c[1]==g&&c[2]==b);
+                for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+                    const i=(y*w+x)*4,c=idx(d[i],d[i+1],d[i+2]);
+                    const b=Math.floor((y*w+x)/4),s=6-(x%4)*2;
+                    out[b]|=c<<s;
+                }
+                return out;
+            }
+            if(mode==="threeColor"){
+                const bw=new Uint8Array(h*Math.ceil(w/8)),r=new Uint8Array(h*Math.ceil(w/8));
+                for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+                    const i=(y*w+x)*4,g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+                    const byte=y*Math.ceil(w/8)+Math.floor(x/8),bit=7-x%8;
+                    bw[byte]|=(g<128?1:0)<<bit;
+                    r[byte]|=!(d[i]>160&&d[i]>d[i+1]&&d[i]>d[i+2])<<bit;
+                }
+                const out=new Uint8Array(bw.length+r.length);
+                out.set(bw,0);out.set(r,bw.length);
+                return out;
+            }
+            const out=new Uint8Array(h*Math.ceil(w/8));
+            for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+                const i=(y*w+x)*4,g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+                const byte=y*Math.ceil(w/8)+Math.floor(x/8),bit=7-x%8;
+                out[byte]|=(g<128?1:0)<<bit;
+            }
+            return out;
+        }
+
+        DOM.scanBluetooth.addEventListener('click', async () => {
+            try {
+                showLoading("搜索设备...");
+                if(!navigator.bluetooth)throw new Error("不支持蓝牙");
+                const device=await navigator.bluetooth.requestDevice({
+                    filters:[{services:[BLE.SERVICE_UUID]}],optionalServices:[BLE.SERVICE_UUID]
+                });
+                DOM.loadingText.textContent="连接中...";
+                const server=await device.gatt.connect();
+                device.ongattserverdisconnected=disconnect;
+                const srv=await server.getPrimaryService(BLE.SERVICE_UUID);
+                state.dataChar=await srv.getCharacteristic(BLE.DATA_CHAR);
+
+                const model=await (await srv.getCharacteristic(BLE.MODEL_CHAR)).readValue();
+                const w=await (await srv.getCharacteristic(BLE.WIDTH_CHAR)).readValue();
+                const h=await (await srv.getCharacteristic(BLE.HEIGHT_CHAR)).readValue();
+                const c=await (await srv.getCharacteristic(BLE.COLOR_CHAR)).readValue();
+
+                DOM.canvasWidth.value=new TextDecoder().decode(w);
+                DOM.canvasHeight.value=new TextDecoder().decode(h);
+                DOM.ditherMode.value=colorModeMap[parseInt(new TextDecoder().decode(c))];
+                updateCanvasSize();
+
+                state.model=new TextDecoder().decode(model);
+                state.device=device;
+                state.deviceName=device.name;
+
+                try{
+                    state.cmdChar=await srv.getCharacteristic(BLE.CMD_CHAR);
+                    await state.cmdChar.startNotifications();
+                    state.cmdChar.addEventListener('characteristicvaluechanged',e=>{
+                        const val=e.target.value;
+                        appendLog(`<< ${new TextDecoder().decode(val)}`,'recv');
+                    });
+                }catch(e){}
+
+                showMessage("连接成功",true);
+            }catch(e){
+                showMessage(`失败: ${e.message}`);
+            }finally{hideLoading();}
+        });
+
+        function disconnect(){
+            if(state.device)state.device.gatt.disconnect();
+            state.device=null;state.dataChar=null;state.cmdChar=null;
+            updateUI();
+            showMessage("已断开");
+        }
+
+        DOM.disconnectBluetooth.addEventListener('click',disconnect);
+
+        DOM.sendBluetooth.addEventListener('click',async()=>{
+            if(!state.device||!state.dataChar)return showMessage("未连接");
+            if(!state.processedImageData)return showMessage("无图片");
+            if(state.isTransferring)return;
+            try{
+                state.isTransferring=true;
+                DOM.transferDialog.style.display="flex";
+                const data=encode(state.processedImageData);
+                const chunk=200,total=data.length;
+                let sent=0;
+                state.transferStart=Date.now();
+                const useWO=state.dataChar.properties.writeWithoutResponse;
+
+                for(let i=0;i<total;i+=chunk){
+                    if(!state.isTransferring)break;
+                    const part=data.slice(i,Math.min(i+chunk,total));
+                    sent+=part.length;
+                    const pct=Math.round(sent/total*100);
+                    const elapsed=(Date.now()-state.transferStart)/1000;
+                    const speed=(sent/1024/elapsed).toFixed(2);
+                    DOM.dialogProgressBar.style.width=pct+"%";
+                    DOM.dialogProgress.textContent=pct+"%";
+                    DOM.dialogBytes.textContent=`${sent}/${total}`;
+                    DOM.dialogSpeed.textContent=`${speed}KB/s`;
+                    DOM.dialogElapsed.textContent=formatTime(elapsed);
+                    if(useWO)await state.dataChar.writeValueWithoutResponse(part);
+                    else await state.dataChar.writeValue(part);
+                    await new Promise(r=>setTimeout(r,8));
+                }
+                if(state.isTransferring)showMessage("发送成功",true);
+            }catch(e){
+                showMessage(`错误: ${e.message}`);
+            }finally{
+                state.isTransferring=false;
+                DOM.transferDialog.style.display="none";
+            }
+        });
+
+        DOM.cancelTransfer.addEventListener('click',()=>{state.isTransferring=false;});
+
+        DOM.sendCommand.addEventListener('click',async()=>{
+            const cmd=DOM.commandInput.value.trim();
+            if(!cmd||!state.cmdChar)return;
+            await state.cmdChar.writeValue(new TextEncoder().encode(cmd));
+            appendLog(`>> ${cmd}`);
+            DOM.commandInput.value="";
+        });
+
+        DOM.clearCommandLog.addEventListener('click',()=>{
+            DOM.commandLog.innerHTML="";
+            appendLog("日志已清空",'error');
+        });
+
+        document.querySelectorAll('.cmd-btn').forEach(b=>{
+            b.addEventListener('click',()=>{
+                DOM.commandInput.value=b.dataset.cmd;
+                DOM.sendCommand.click();
+            });
+        });
+
+        DOM.albumPlay.addEventListener('click',()=>{
+            const t=DOM.albumInterval.value;
+            const m=document.querySelector('input[name="play-mode"]:checked').value;
+            DOM.commandInput.value=`AUTO ${t} ${m==="sequential"?0:m==="reverse"?1:2}`;
+            DOM.sendCommand.click();
+        });
+
+        // 移动端触摸拖动优化
+        DOM.canvas.addEventListener('touchstart', (e) => {
+            if (!state.originalImage) return;
+            e.preventDefault();
+            state.isDragging = true;
+            const touch = e.touches[0];
+            state.lastX = touch.clientX;
+            state.lastY = touch.clientY;
+            DOM.canvas.classList.add('grabbing');
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!state.isDragging || !state.originalImage) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const dx = touch.clientX - state.lastX;
+            const dy = touch.clientY - state.lastY;
+            
+            state.offsetX += dx;
+            state.offsetY += dy;
+            state.lastX = touch.clientX;
+            state.lastY = touch.clientY;
+            redraw();
+        });
+
+        window.addEventListener('touchend', () => {
+            state.isDragging = false;
+            DOM.canvas.classList.remove('grabbing');
+        });
+
+        // 触摸缩放
+        let touchDistance = 0;
+        DOM.canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                touchDistance = Math.hypot(
+                    touch2.clientX - touch1.clientX,
+                    touch2.clientY - touch1.clientY
+                );
+            }
+        });
+
+        DOM.canvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && state.originalImage) {
+                e.preventDefault();
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                const newDistance = Math.hypot(
+                    touch2.clientX - touch1.clientX,
+                    touch2.clientY - touch1.clientY
+                );
+                
+                const scaleFactor = newDistance / touchDistance;
+                const newScale = state.scale * scaleFactor;
+                
+                if (newScale >= state.minScale && newScale <= state.maxScale) {
+                    state.scale = newScale;
+                    redraw();
+                }
+                touchDistance = newDistance;
+            }
+        });
+
+        DOM.canvas.addEventListener('mousedown',e=>{
+            if(!state.originalImage)return;
+            state.isDragging=true;
+            state.lastX=e.clientX;
+            state.lastY=e.clientY;
+            DOM.canvas.classList.add('grabbing');
+        });
+
+        window.addEventListener('mousemove',e=>{
+            if(!state.isDragging||!state.originalImage)return;
+            const dx=e.clientX-state.lastX;
+            const dy=e.clientY-state.lastY;
+            state.offsetX+=dx;
+            state.offsetY+=dy;
+            state.lastX=e.clientX;
+            state.lastY=e.clientY;
+            redraw();
+        });
+
+        window.addEventListener('mouseup',()=>{
+            state.isDragging=false;
+            DOM.canvas.classList.remove('grabbing');
+        });
+
+        DOM.canvas.addEventListener('wheel',e=>{
+            e.preventDefault();
+            if(!state.originalImage)return;
+            const f=e.deltaY>0?0.9:1.1;
+            const newScale=state.scale*f;
+            if(newScale>=state.minScale&&newScale<=state.maxScale){
+                state.scale=newScale;
+                redraw();
+            }
+        });
+    </script>
+</body>
+
+</html>
